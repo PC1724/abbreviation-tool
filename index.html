@@ -7,12 +7,12 @@
 <style>
     body { 
         font-family: 'Segoe UI', Tahoma, sans-serif; 
-        background: #0D1117;  /* dark background */
+        background: #0D1117;
         padding: 30px; 
-        color: #E4E4E4; /* default text for body */
+        color: #E4E4E4;
     }
     h1, h2 { 
-        color: #D87B66; /* warm heading color */
+        color: #D87B66;
     }
     h1 { 
         text-align: center; 
@@ -28,7 +28,7 @@
     .container { 
         max-width: 900px; 
         margin: auto; 
-        background: #161B22; /* slightly lighter than background */
+        background: #161B22;
         padding: 25px; 
         border-radius: 12px; 
         box-shadow: 0 6px 25px rgba(0,0,0,0.6); 
@@ -52,7 +52,7 @@
     .btn { 
         padding: 12px 18px; 
         cursor: pointer; 
-        background: #D87B66;  /* same as headings */
+        background: #D87B66;
         color: #0D1117; 
         font-weight: bold;
         border: none; 
@@ -62,7 +62,7 @@
         transition: background 0.3s ease; 
     }
     .btn:hover { 
-        background: #B45A50; /* darker on hover */
+        background: #B45A50;
     }
     .abbreviation-text { 
         display: flex; 
@@ -76,17 +76,17 @@
     }
     .line:hover .abbr-line { 
         text-decoration: underline;
-        text-decoration-color: #7EE778; /* underline in same as abbreviation */
+        text-decoration-color: #7EE778;
     }
     .abbr-line { 
         font-family: 'Consolas', monospace; 
         font-weight: bold; 
-        color: #7EE778; /* pastel green abbreviation */
+        color: #7EE778; 
         font-size: 1.4rem; 
     }
     .full-form-line { 
         font-family: 'Consolas', monospace; 
-        color: #45B2FF; /* bright blue full form */
+        color: #45B2FF;
         display: none; 
         margin-top: 6px; 
         padding-left: 16px;
@@ -127,6 +127,10 @@ function decodeFromURL(text) {
     return decodeURIComponent(text || '');
 }
 
+// Global state
+let isGenerated = false;
+let currentIndex = 0;
+
 // Preload from URL if available
 window.addEventListener('DOMContentLoaded', () => {
     const params = new URLSearchParams(window.location.search);
@@ -137,7 +141,7 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 // Generate abbreviation tool
-document.getElementById('generateBtn').addEventListener('click', () => {
+function generateTool() {
     const abbrText = document.getElementById('abbrInput').value.trim();
     const fullText = document.getElementById('fullInput').value.trim();
     const abbrLines = abbrText.split('\n');
@@ -159,12 +163,10 @@ document.getElementById('generateBtn').addEventListener('click', () => {
         const lineDiv = document.createElement('div');
         lineDiv.className = 'line';
 
-        // Always visible abbreviation
         const abbrSpan = document.createElement('span');
         abbrSpan.className = 'abbr-line';
         abbrSpan.textContent = line;
 
-        // Full form hidden initially
         const fullSpan = document.createElement('span');
         fullSpan.className = 'full-form-line';
         fullSpan.textContent = fullLines[index];
@@ -172,7 +174,7 @@ document.getElementById('generateBtn').addEventListener('click', () => {
         lineDiv.appendChild(abbrSpan);
         lineDiv.appendChild(fullSpan);
 
-        // Toggle full form visibility (single line)
+        // Toggle manually by clicking
         lineDiv.addEventListener('click', () => {
             const isVisible = window.getComputedStyle(fullSpan).display !== 'none';
             fullSpan.style.display = isVisible ? 'none' : 'block';
@@ -180,12 +182,35 @@ document.getElementById('generateBtn').addEventListener('click', () => {
 
         abbreviationText.appendChild(lineDiv);
     });
+
+    // Reset state
+    isGenerated = true;
+    currentIndex = 0;
+}
+
+document.getElementById('generateBtn').addEventListener('click', generateTool);
+
+// Press Spacebar to expand next line
+document.addEventListener('keydown', (event) => {
+    if (event.key === ' ' && event.target.tagName !== 'TEXTAREA' && event.target.tagName !== 'INPUT') {
+        event.preventDefault();
+
+        if (!isGenerated) {
+            generateTool();
+        } else {
+            const allFullForms = document.querySelectorAll('.full-form-line');
+            if (currentIndex < allFullForms.length) {
+                allFullForms[currentIndex].style.display = 'block';
+                currentIndex++;
+            }
+        }
+    }
 });
 
-// Keyboard shortcut: Press Ctrl + 1 to toggle all full forms
+// Ctrl + 1 toggles all full forms
 document.addEventListener('keydown', (event) => {
     if (event.ctrlKey && event.key === "1") {
-        event.preventDefault(); // stop browser default zoom
+        event.preventDefault();
         const allFullForms = document.querySelectorAll('.full-form-line');
         const anyHidden = Array.from(allFullForms).some(el => window.getComputedStyle(el).display === 'none');
 
