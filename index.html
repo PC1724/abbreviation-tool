@@ -114,33 +114,49 @@
 
     <h2>Abbreviated Text</h2>
     <div class="abbreviation-text" id="abbreviationText"></div>
+
+    <h2>Study Count: <span id="studyCount">0</span></h2>
+    <button class="btn" id="countPlus">Studied +1</button>
+    <button class="btn" id="countMinus">Studied -1</button>
+
 </div>
 
 <script>
-// Encode text to URL-friendly format
 function encodeForURL(text) {
     return encodeURIComponent(text);
 }
-
-// Decode text from URL
 function decodeFromURL(text) {
     return decodeURIComponent(text || '');
 }
 
-// Global state
 let isGenerated = false;
 let currentIndex = 0;
+let studyCount = 0;
 
-// Preload from URL if available
+// Load saved settings from URL
 window.addEventListener('DOMContentLoaded', () => {
     const params = new URLSearchParams(window.location.search);
     const abbrParam = params.get('abbr');
     const fullParam = params.get('full');
+    const countParam = params.get('count');
+
     if (abbrParam) document.getElementById('abbrInput').value = decodeFromURL(abbrParam);
     if (fullParam) document.getElementById('fullInput').value = decodeFromURL(fullParam);
+
+    if (countParam) {
+        studyCount = parseInt(countParam) || 0;
+        document.getElementById('studyCount').textContent = studyCount;
+    }
 });
 
-// Generate abbreviation tool
+function updateURL() {
+    const abbrText = document.getElementById('abbrInput').value.trim();
+    const fullText = document.getElementById('fullInput').value.trim();
+
+    const newURL = `${window.location.origin}${window.location.pathname}?abbr=${encodeForURL(abbrText)}&full=${encodeForURL(fullText)}&count=${studyCount}`;
+    window.history.replaceState(null, '', newURL);
+}
+
 function generateTool() {
     const abbrText = document.getElementById('abbrInput').value.trim();
     const fullText = document.getElementById('fullInput').value.trim();
@@ -152,12 +168,9 @@ function generateTool() {
         return;
     }
 
-    // Update URL so it can be shared
-    const newURL = `${window.location.origin}${window.location.pathname}?abbr=${encodeForURL(abbrText)}&full=${encodeForURL(fullText)}`;
-    window.history.replaceState(null, '', newURL);
-
-    const abbreviationText = document.getElementById('abbreviationText');
-    abbreviationText.innerHTML = '';
+    updateURL();
+    const container = document.getElementById('abbreviationText');
+    container.innerHTML = '';
 
     abbrLines.forEach((line, index) => {
         const lineDiv = document.createElement('div');
@@ -174,25 +187,39 @@ function generateTool() {
         lineDiv.appendChild(abbrSpan);
         lineDiv.appendChild(fullSpan);
 
-        // Toggle manually by clicking
         lineDiv.addEventListener('click', () => {
-            const isVisible = window.getComputedStyle(fullSpan).display !== 'none';
-            fullSpan.style.display = isVisible ? 'none' : 'block';
+            const visible = window.getComputedStyle(fullSpan).display !== 'none';
+            fullSpan.style.display = visible ? 'none' : 'block';
         });
 
-        abbreviationText.appendChild(lineDiv);
+        container.appendChild(lineDiv);
     });
 
-    // Reset state
     isGenerated = true;
     currentIndex = 0;
 }
 
 document.getElementById('generateBtn').addEventListener('click', generateTool);
 
-// Press Spacebar to expand next line
+// +1 button
+document.getElementById('countPlus').addEventListener('click', () => {
+    studyCount++;
+    document.getElementById('studyCount').textContent = studyCount;
+    updateURL();
+});
+
+// -1 button (never below 0)
+document.getElementById('countMinus').addEventListener('click', () => {
+    if (studyCount > 0) {
+        studyCount--;
+        document.getElementById('studyCount').textContent = studyCount;
+        updateURL();
+    }
+});
+
+// SPACEBAR reveals next line
 document.addEventListener('keydown', (event) => {
-    if (event.key === ' ' && event.target.tagName !== 'TEXTAREA' && event.target.tagName !== 'INPUT') {
+    if (event.key === ' ' && event.target.tagName !== 'TEXTAREA') {
         event.preventDefault();
 
         if (!isGenerated) {
@@ -207,19 +234,15 @@ document.addEventListener('keydown', (event) => {
     }
 });
 
-// Ctrl + 1 toggles all full forms
+// CTRL+1 toggles all full forms
 document.addEventListener('keydown', (event) => {
     if (event.ctrlKey && event.key === "1") {
         event.preventDefault();
         const allFullForms = document.querySelectorAll('.full-form-line');
         const anyHidden = Array.from(allFullForms).some(el => window.getComputedStyle(el).display === 'none');
-
-        allFullForms.forEach(el => {
-            el.style.display = anyHidden ? 'block' : 'none';
-        });
+        allFullForms.forEach(el => el.style.display = anyHidden ? 'block' : 'none');
     }
 });
 </script>
 </body>
 </html>
-
