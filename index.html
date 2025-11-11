@@ -234,15 +234,58 @@ document.addEventListener('keydown', (event) => {
     }
 });
 
-// CTRL+1 toggles all full forms
+// CTRL+1 toggles full forms
 document.addEventListener('keydown', (event) => {
     if (event.ctrlKey && event.key === "1") {
         event.preventDefault();
-        const allFullForms = document.querySelectorAll('.full-form-line');
-        const anyHidden = Array.from(allFullForms).some(el => window.getComputedStyle(el).display === 'none');
-        allFullForms.forEach(el => el.style.display = anyHidden ? 'block' : 'none');
+
+        const selection = window.getSelection();
+        if (selection.rangeCount === 0 || selection.isCollapsed) {
+            // No selection → toggle all as before
+            const allFullForms = document.querySelectorAll('.full-form-line');
+            const anyHidden = Array.from(allFullForms).some(el => window.getComputedStyle(el).display === 'none');
+            allFullForms.forEach(el => el.style.display = anyHidden ? 'block' : 'none');
+        } else {
+            // There is a selection → toggle only the selected paragraph(s)
+            const range = selection.getRangeAt(0);
+            const selectedNodes = getNodesInRange(range);
+
+            // Find all line divs within the selection
+            const linesToToggle = selectedNodes.filter(node => node.classList && node.classList.contains('line'));
+
+            linesToToggle.forEach(line => {
+                const fullSpan = line.querySelector('.full-form-line');
+                if (fullSpan) {
+                    const visible = window.getComputedStyle(fullSpan).display !== 'none';
+                    fullSpan.style.display = visible ? 'none' : 'block';
+                }
+            });
+        }
     }
 });
+
+// Helper: get all nodes in a selection range
+function getNodesInRange(range) {
+    const nodes = [];
+    const treeWalker = document.createTreeWalker(
+        range.commonAncestorContainer,
+        NodeFilter.SHOW_ELEMENT,
+        {
+            acceptNode: function(node) {
+                return NodeFilter.FILTER_ACCEPT;
+            }
+        }
+    );
+
+    let currentNode = treeWalker.currentNode;
+    while(currentNode) {
+        if (range.intersectsNode(currentNode)) {
+            nodes.push(currentNode);
+        }
+        currentNode = treeWalker.nextNode();
+    }
+    return nodes;
+}
 </script>
 </body>
 </html>
