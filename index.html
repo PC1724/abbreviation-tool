@@ -45,6 +45,7 @@
         outline: none; 
         background: #0D1117; 
         color: #E4E4E4; 
+        white-space: pre-wrap; /* preserve spacing inside textarea */
     }
     textarea:focus { 
         background: #161B22;
@@ -73,6 +74,7 @@
         cursor: pointer; 
         transition: all 0.3s ease; 
         padding: 6px 0;
+        white-space: pre-wrap; /* preserve indentation inside the line container */
     }
     .line:hover .abbr-line { 
         text-decoration: underline;
@@ -83,6 +85,7 @@
         font-weight: bold; 
         color: #7EE778; 
         font-size: 1.4rem; 
+        white-space: pre-wrap; /* preserve spaces/tabs in abbreviations */
     }
     .full-form-line { 
         font-family: 'Consolas', monospace; 
@@ -93,9 +96,8 @@
         border-left: 2px solid #45B2FF;
         animation: fadeIn 0.3s ease;
         font-size: 1.2rem; 
-        white-space: pre-wrap; /* <-- preserves indentation and line breaks */
+        white-space: pre-wrap; /* preserve spaces/tabs in full forms */
     }
-
     @keyframes fadeIn {
         from { opacity: 0; transform: translateY(-3px); }
         to { opacity: 1; transform: translateY(0); }
@@ -243,18 +245,13 @@ document.addEventListener('keydown', (event) => {
 
         const selection = window.getSelection();
         if (selection.rangeCount === 0 || selection.isCollapsed) {
-            // No selection → toggle all as before
             const allFullForms = document.querySelectorAll('.full-form-line');
             const anyHidden = Array.from(allFullForms).some(el => window.getComputedStyle(el).display === 'none');
             allFullForms.forEach(el => el.style.display = anyHidden ? 'block' : 'none');
         } else {
-            // There is a selection → toggle only the selected paragraph(s)
             const range = selection.getRangeAt(0);
             const selectedNodes = getNodesInRange(range);
-
-            // Find all line divs within the selection
             const linesToToggle = selectedNodes.filter(node => node.classList && node.classList.contains('line'));
-
             linesToToggle.forEach(line => {
                 const fullSpan = line.querySelector('.full-form-line');
                 if (fullSpan) {
@@ -272,11 +269,7 @@ function getNodesInRange(range) {
     const treeWalker = document.createTreeWalker(
         range.commonAncestorContainer,
         NodeFilter.SHOW_ELEMENT,
-        {
-            acceptNode: function(node) {
-                return NodeFilter.FILTER_ACCEPT;
-            }
-        }
+        { acceptNode: () => NodeFilter.FILTER_ACCEPT }
     );
 
     let currentNode = treeWalker.currentNode;
@@ -288,7 +281,32 @@ function getNodesInRange(range) {
     }
     return nodes;
 }
+
+// -------------------
+// Enable Tab key as 4 spaces
+// -------------------
+function enableTabAsSpaces(textareaId, spaces = 4) {
+    const textarea = document.getElementById(textareaId);
+    const spaceString = ' '.repeat(spaces);
+
+    textarea.addEventListener('keydown', function(e) {
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            const start = this.selectionStart;
+            const end = this.selectionEnd;
+
+            // Insert spaces instead of tab
+            this.value = this.value.substring(0, start) + spaceString + this.value.substring(end);
+
+            // Move cursor after the inserted spaces
+            this.selectionStart = this.selectionEnd = start + spaces;
+        }
+    });
+}
+
+// Apply to both textareas
+enableTabAsSpaces('abbrInput', 4);
+enableTabAsSpaces('fullInput', 4);
 </script>
 </body>
 </html>
-
