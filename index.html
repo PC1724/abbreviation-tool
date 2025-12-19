@@ -93,7 +93,9 @@
         border-left: 2px solid #45B2FF;
         animation: fadeIn 0.3s ease;
         font-size: 1.2rem; 
+        white-space: pre-wrap; /* <-- preserves indentation and line breaks */
     }
+
     @keyframes fadeIn {
         from { opacity: 0; transform: translateY(-3px); }
         to { opacity: 1; transform: translateY(0); }
@@ -289,3 +291,4 @@ function getNodesInRange(range) {
 </script>
 </body>
 </html>
+
