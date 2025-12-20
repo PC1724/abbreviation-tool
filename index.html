@@ -4,114 +4,93 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Abbreviation Learning Tool</title>
+
 <style>
-    body { 
-        font-family: 'Segoe UI', Tahoma, sans-serif; 
-        background: #0D1117;
-        padding: 30px; 
-        color: #E4E4E4;
-    }
-    h1, h2 { 
-        color: #D87B66;
-    }
-    h1 { 
-        text-align: center; 
-        margin-bottom: 25px; 
-        font-size: 2.2rem; 
-    }
-    h2 {
-        margin-top: 25px;
-        font-size: 1.2rem;
-        font-weight: normal;
-        opacity: 0.9;
-    }
-    .container { 
-        max-width: 900px; 
-        margin: auto; 
-        background: #161B22;
-        padding: 25px; 
-        border-radius: 12px; 
-        box-shadow: 0 6px 25px rgba(0,0,0,0.6); 
-    }
-    textarea { 
-        width: 100%; 
-        height: 120px; 
-        margin-bottom: 20px; 
-        padding: 12px; 
-        font-family: 'Consolas', monospace; 
-        font-size: 1rem; 
-        border: none; 
-        border-radius: 8px; 
-        outline: none; 
-        background: #0D1117; 
-        color: #E4E4E4; 
-        white-space: pre-wrap; /* preserve spacing inside textarea */
-    }
-    textarea:focus { 
-        background: #161B22;
-    }
-    .btn { 
-        padding: 12px 18px; 
-        cursor: pointer; 
-        background: #D87B66;
-        color: #0D1117; 
-        font-weight: bold;
-        border: none; 
-        border-radius: 6px; 
-        margin-bottom: 20px; 
-        font-size: 1rem;
-        transition: background 0.3s ease; 
-    }
-    .btn:hover { 
-        background: #B45A50;
-    }
-    .abbreviation-text { 
-        display: flex; 
-        flex-direction: column; 
-        gap: 18px; 
-    }
-    .line { 
-        cursor: pointer; 
-        transition: all 0.3s ease; 
-        padding: 6px 0;
-        white-space: pre-wrap; /* preserve indentation inside the line container */
-    }
-    .line:hover .abbr-line { 
-        text-decoration: underline;
-        text-decoration-color: #7EE778;
-    }
-    .abbr-line { 
-        font-family: 'Consolas', monospace; 
-        font-weight: bold; 
-        color: #7EE778; 
-        font-size: 1.4rem; 
-        white-space: pre-wrap; /* preserve spaces/tabs in abbreviations */
-    }
-    .full-form-line { 
-        font-family: 'Consolas', monospace; 
-        color: #45B2FF;
-        display: none; 
-        margin-top: 6px; 
-        padding-left: 0;
-        animation: fadeIn 0.3s ease;
-        font-size: 1.2rem; 
-        white-space: pre-wrap; /* preserve spaces/tabs in full forms */
-    }
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(-3px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
+body { 
+    font-family: 'Segoe UI', Tahoma, sans-serif; 
+    background: #0D1117;
+    padding: 30px; 
+    color: #E4E4E4;
+}
+h1, h2 { color: #D87B66; }
+h1 { text-align: center; margin-bottom: 25px; font-size: 2.2rem; }
+h2 { margin-top: 25px; font-size: 1.2rem; font-weight: normal; opacity: 0.9; }
+
+.container { 
+    max-width: 900px; 
+    margin: auto; 
+    background: #161B22;
+    padding: 25px; 
+    border-radius: 12px; 
+    box-shadow: 0 6px 25px rgba(0,0,0,0.6); 
+}
+
+textarea { 
+    width: 100%; 
+    height: 120px; 
+    margin-bottom: 20px; 
+    padding: 12px; 
+    font-family: 'Consolas', monospace; 
+    font-size: 1rem; 
+    border: none; 
+    border-radius: 8px; 
+    outline: none; 
+    background: #0D1117; 
+    color: #E4E4E4;
+    white-space: pre-wrap;
+}
+textarea:focus { background: #161B22; }
+
+.btn { 
+    padding: 12px 18px; 
+    cursor: pointer; 
+    background: #D87B66;
+    color: #0D1117; 
+    font-weight: bold;
+    border: none; 
+    border-radius: 6px; 
+    margin-bottom: 20px; 
+    font-size: 1rem;
+}
+.btn:hover { background: #B45A50; }
+
+.abbreviation-text { display: flex; flex-direction: column; gap: 18px; }
+
+.line { cursor: pointer; white-space: pre-wrap; }
+
+.abbr-line { 
+    font-family: 'Consolas', monospace; 
+    font-weight: bold; 
+    color: #7EE778; 
+    font-size: 1.4rem; 
+}
+
+.full-form-line { 
+    font-family: 'Consolas', monospace; 
+    color: #45B2FF;
+    display: none; 
+    margin-top: 6px; 
+    font-size: 1.2rem;
+    white-space: pre-wrap;
+}
+
+.full-form-line[data-empty="true"] {
+    display: block;
+    height: 1rem;
+    visibility: hidden;
+}
 </style>
 </head>
+
 <body>
 <div class="container">
     <h1>Abbreviation Learning Tool</h1>
 
     <h2>Abbreviations Input</h2>
-    <textarea id="abbrInput" placeholder="Enter abbreviation lines, one line per sentence..."></textarea>
+    <textarea id="abbrInput"></textarea>
 
     <h2>Full Forms Input</h2>
-    <textarea id="fullInput" placeholder="Enter corresponding full forms, one line per sentence..."></textarea>
+    <textarea id="fullInput"></textarea>
 
     <button class="btn" id="generateBtn">Generate Tool</button>
 
@@ -121,191 +100,155 @@
     <h2>Study Count: <span id="studyCount">0</span></h2>
     <button class="btn" id="countPlus">Studied +1</button>
     <button class="btn" id="countMinus">Studied -1</button>
-
 </div>
 
 <script>
-function encodeForURL(text) {
-    return encodeURIComponent(text);
-}
-function decodeFromURL(text) {
-    return decodeURIComponent(text || '');
-}
+/* ========== DOM ========== */
+const abbrInput = document.getElementById('abbrInput');
+const fullInput = document.getElementById('fullInput');
+const abbreviationText = document.getElementById('abbreviationText');
+const generateBtn = document.getElementById('generateBtn');
+const studyCountEl = document.getElementById('studyCount');
+const countPlus = document.getElementById('countPlus');
+const countMinus = document.getElementById('countMinus');
 
+/* ========== STATE ========== */
 let isGenerated = false;
-let currentIndex = 0;
 let studyCount = 0;
 
-// Load saved settings from URL
-window.addEventListener('DOMContentLoaded', () => {
-    const params = new URLSearchParams(window.location.search);
-    const abbrParam = params.get('abbr');
-    const fullParam = params.get('full');
-    const countParam = params.get('count');
-
-    if (abbrParam) document.getElementById('abbrInput').value = decodeFromURL(abbrParam);
-    if (fullParam) document.getElementById('fullInput').value = decodeFromURL(fullParam);
-
-    if (countParam) {
-        studyCount = parseInt(countParam) || 0;
-        document.getElementById('studyCount').textContent = studyCount;
-    }
-});
+/* ========== URL HELPERS ========== */
+const encode = encodeURIComponent;
+const decode = t => decodeURIComponent(t || '');
 
 function updateURL() {
-    const abbrText = document.getElementById('abbrInput').value.trim();
-    const fullText = document.getElementById('fullInput').value.trim();
-
-    const newURL = `${window.location.origin}${window.location.pathname}?abbr=${encodeForURL(abbrText)}&full=${encodeForURL(fullText)}&count=${studyCount}`;
-    window.history.replaceState(null, '', newURL);
+    history.replaceState(
+        null,
+        '',
+        `?abbr=${encode(abbrInput.value)}&full=${encode(fullInput.value)}&count=${studyCount}`
+    );
 }
 
+/* ========== LOAD FROM URL ========== */
+window.addEventListener('DOMContentLoaded', () => {
+    const p = new URLSearchParams(location.search);
+    abbrInput.value = decode(p.get('abbr'));
+    fullInput.value = decode(p.get('full'));
+    studyCount = parseInt(p.get('count')) || 0;
+    studyCountEl.textContent = studyCount;
+});
+
+/* ========== GENERATE ========== */
 function generateTool() {
-    const abbrText = document.getElementById('abbrInput').value.trim();
-    const fullText = document.getElementById('fullInput').value.trim();
-    const abbrLines = abbrText.split('\n');
-    const fullLines = fullText.split('\n');
+    const abbrLines = abbrInput.value.split('\n');
+    const fullLines = fullInput.value.split('\n');
 
     if (abbrLines.length !== fullLines.length) {
-        alert("Number of abbreviation lines and full form lines must match!");
+        alert("Line counts must match!");
         return;
     }
 
     updateURL();
-    const container = document.getElementById('abbreviationText');
-    container.innerHTML = '';
+    abbreviationText.innerHTML = '';
 
-    abbrLines.forEach((line, index) => {
-        const lineDiv = document.createElement('div');
-        lineDiv.className = 'line';
+    abbrLines.forEach((abbr, i) => {
+        const line = document.createElement('div');
+        line.className = 'line';
 
-        const abbrSpan = document.createElement('span');
-        abbrSpan.className = 'abbr-line';
-        abbrSpan.textContent = line;
+        const a = document.createElement('span');
+        a.className = 'abbr-line';
+        a.textContent = abbr;
 
-        const fullSpan = document.createElement('span');
-        fullSpan.className = 'full-form-line';
-        fullSpan.textContent = fullLines[index];
+        const f = document.createElement('span');
+        f.className = 'full-form-line';
 
-        lineDiv.appendChild(abbrSpan);
-        lineDiv.appendChild(fullSpan);
+        if (fullLines[i].trim() === '') {
+            f.dataset.empty = "true";
+        } else {
+            f.textContent = fullLines[i];
+        }
 
-        lineDiv.addEventListener('click', () => {
-            const visible = window.getComputedStyle(fullSpan).display !== 'none';
-            fullSpan.style.display = visible ? 'none' : 'block';
-        });
+        line.append(a, f);
+        line.onclick = () => {
+            if (!f.dataset.empty) {
+                f.style.display = f.style.display === 'block' ? 'none' : 'block';
+            }
+        };
 
-        container.appendChild(lineDiv);
+        abbreviationText.appendChild(line);
     });
 
     isGenerated = true;
-    currentIndex = 0;
 }
 
-document.getElementById('generateBtn').addEventListener('click', generateTool);
+generateBtn.onclick = generateTool;
 
-// +1 button
-document.getElementById('countPlus').addEventListener('click', () => {
-    studyCount++;
-    document.getElementById('studyCount').textContent = studyCount;
-    updateURL();
-});
-
-// -1 button (never below 0)
-document.getElementById('countMinus').addEventListener('click', () => {
-    if (studyCount > 0) {
-        studyCount--;
-        document.getElementById('studyCount').textContent = studyCount;
-        updateURL();
-    }
-});
-
-// SPACEBAR reveals next line
-document.addEventListener('keydown', (event) => {
-    if (event.key === ' ' && event.target.tagName !== 'TEXTAREA') {
-        event.preventDefault();
+/* ========== SPACE = reveal next + scroll ========== */
+document.addEventListener('keydown', e => {
+    if (e.key === ' ' && e.target.tagName !== 'TEXTAREA') {
+        e.preventDefault();
 
         if (!isGenerated) {
             generateTool();
-        } else {
-            const allFullForms = document.querySelectorAll('.full-form-line');
-            if (currentIndex < allFullForms.length) {
-                allFullForms[currentIndex].style.display = 'block';
-                currentIndex++;
-            }
+            return;
+        }
+
+        const nextHidden = [...document.querySelectorAll('.full-form-line')]
+            .find(el =>
+                el.dataset.empty !== "true" &&
+                getComputedStyle(el).display === 'none'
+            );
+
+        if (nextHidden) {
+            nextHidden.style.display = 'block';
+            nextHidden.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     }
 });
 
-// CTRL+1 toggles full forms
-document.addEventListener('keydown', (event) => {
-    if (event.ctrlKey && event.key === "1") {
-        event.preventDefault();
+/* ========== CTRL+1 toggle all ========== */
+document.addEventListener('keydown', e => {
+    if (e.ctrlKey && e.key === '1') {
+        e.preventDefault();
 
-        const selection = window.getSelection();
-        if (selection.rangeCount === 0 || selection.isCollapsed) {
-            const allFullForms = document.querySelectorAll('.full-form-line');
-            const anyHidden = Array.from(allFullForms).some(el => window.getComputedStyle(el).display === 'none');
-            allFullForms.forEach(el => el.style.display = anyHidden ? 'block' : 'none');
-        } else {
-            const range = selection.getRangeAt(0);
-            const selectedNodes = getNodesInRange(range);
-            const linesToToggle = selectedNodes.filter(node => node.classList && node.classList.contains('line'));
-            linesToToggle.forEach(line => {
-                const fullSpan = line.querySelector('.full-form-line');
-                if (fullSpan) {
-                    const visible = window.getComputedStyle(fullSpan).display !== 'none';
-                    fullSpan.style.display = visible ? 'none' : 'block';
-                }
-            });
-        }
+        const all = [...document.querySelectorAll('.full-form-line')]
+            .filter(el => el.dataset.empty !== "true");
+
+        const anyVisible = all.some(el => getComputedStyle(el).display !== 'none');
+        all.forEach(el => el.style.display = anyVisible ? 'none' : 'block');
     }
 });
 
-// Helper: get all nodes in a selection range
-function getNodesInRange(range) {
-    const nodes = [];
-    const treeWalker = document.createTreeWalker(
-        range.commonAncestorContainer,
-        NodeFilter.SHOW_ELEMENT,
-        { acceptNode: () => NodeFilter.FILTER_ACCEPT }
-    );
+/* ========== STUDY COUNT ========== */
+countPlus.onclick = () => {
+    studyCount++;
+    studyCountEl.textContent = studyCount;
+    updateURL();
+};
 
-    let currentNode = treeWalker.currentNode;
-    while(currentNode) {
-        if (range.intersectsNode(currentNode)) {
-            nodes.push(currentNode);
-        }
-        currentNode = treeWalker.nextNode();
+countMinus.onclick = () => {
+    if (studyCount > 0) {
+        studyCount--;
+        studyCountEl.textContent = studyCount;
+        updateURL();
     }
-    return nodes;
-}
+};
 
-// -------------------
-// Enable Tab key as 4 spaces
-// -------------------
-function enableTabAsSpaces(textareaId, spaces = 4) {
-    const textarea = document.getElementById(textareaId);
-    const spaceString = ' '.repeat(spaces);
-
-    textarea.addEventListener('keydown', function(e) {
+/* ========== TAB AS SPACES ========== */
+function enableTabAsSpaces(el, spaces = 4) {
+    el.addEventListener('keydown', e => {
         if (e.key === 'Tab') {
             e.preventDefault();
-            const start = this.selectionStart;
-            const end = this.selectionEnd;
-
-            // Insert spaces instead of tab
-            this.value = this.value.substring(0, start) + spaceString + this.value.substring(end);
-
-            // Move cursor after the inserted spaces
-            this.selectionStart = this.selectionEnd = start + spaces;
+            const s = el.selectionStart;
+            el.value =
+                el.value.slice(0, s) +
+                ' '.repeat(spaces) +
+                el.value.slice(el.selectionEnd);
+            el.selectionStart = el.selectionEnd = s + spaces;
         }
     });
 }
-
-// Apply to both textareas
-enableTabAsSpaces('abbrInput', 4);
-enableTabAsSpaces('fullInput', 4);
+enableTabAsSpaces(abbrInput);
+enableTabAsSpaces(fullInput);
 </script>
 </body>
 </html>
