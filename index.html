@@ -54,9 +54,16 @@ textarea:focus { background: #161B22; }
 }
 .btn:hover { background: #B45A50; }
 
-.abbreviation-text { display: flex; flex-direction: column; gap: 18px; }
+.abbreviation-text { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 18px; 
+}
 
-.line { cursor: pointer; white-space: pre-wrap; }
+.line { 
+    cursor: pointer; 
+    white-space: pre-wrap; 
+}
 
 .abbr-line { 
     font-family: 'Consolas', monospace; 
@@ -65,19 +72,33 @@ textarea:focus { background: #161B22; }
     font-size: 1.4rem; 
 }
 
-.full-form-line { 
-    font-family: 'Consolas', monospace; 
+/* ===== FULL FORM (SOFT, CLEAN) ===== */
+.full-form-line {
+    font-family: 'Consolas', monospace;
     color: #45B2FF;
-    display: none; 
-    margin-top: 6px; 
-    font-size: 1.2rem;
-    white-space: pre-wrap;
+
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+
+    margin-top: 4px;   /* sirf vertical gap */
+
+    font-size: 1.1rem;
+
+    transition:
+        max-height 280ms ease,
+        opacity 220ms ease;
+}
+
+
+.full-form-line.show {
+    max-height: 200px;
+    opacity: 0.85;
 }
 
 .full-form-line[data-empty="true"] {
-    display: block;
-    height: 1rem;
-    visibility: hidden;
+    max-height: 1rem;
+    opacity: 0;
 }
 </style>
 </head>
@@ -103,7 +124,6 @@ textarea:focus { background: #161B22; }
 </div>
 
 <script>
-/* ========== DOM ========== */
 const abbrInput = document.getElementById('abbrInput');
 const fullInput = document.getElementById('fullInput');
 const abbreviationText = document.getElementById('abbreviationText');
@@ -112,11 +132,10 @@ const studyCountEl = document.getElementById('studyCount');
 const countPlus = document.getElementById('countPlus');
 const countMinus = document.getElementById('countMinus');
 
-/* ========== STATE ========== */
 let isGenerated = false;
 let studyCount = 0;
 
-/* ========== URL HELPERS ========== */
+/* URL helpers */
 const encode = encodeURIComponent;
 const decode = t => decodeURIComponent(t || '');
 
@@ -128,7 +147,7 @@ function updateURL() {
     );
 }
 
-/* ========== LOAD FROM URL ========== */
+/* load from URL */
 window.addEventListener('DOMContentLoaded', () => {
     const p = new URLSearchParams(location.search);
     abbrInput.value = decode(p.get('abbr'));
@@ -137,7 +156,7 @@ window.addEventListener('DOMContentLoaded', () => {
     studyCountEl.textContent = studyCount;
 });
 
-/* ========== GENERATE ========== */
+/* generate */
 function generateTool() {
     const abbrLines = abbrInput.value.split('\n');
     const fullLines = fullInput.value.split('\n');
@@ -158,7 +177,7 @@ function generateTool() {
         a.className = 'abbr-line';
         a.textContent = abbr;
 
-        const f = document.createElement('span');
+        const f = document.createElement('div');
         f.className = 'full-form-line';
 
         if (fullLines[i].trim() === '') {
@@ -168,9 +187,10 @@ function generateTool() {
         }
 
         line.append(a, f);
+
         line.onclick = () => {
             if (!f.dataset.empty) {
-                f.style.display = f.style.display === 'block' ? 'none' : 'block';
+                f.classList.toggle('show');
             }
         };
 
@@ -182,7 +202,7 @@ function generateTool() {
 
 generateBtn.onclick = generateTool;
 
-/* ========== SPACE = reveal next + scroll ========== */
+/* SPACE = reveal next smoothly */
 document.addEventListener('keydown', e => {
     if (e.key === ' ' && e.target.tagName !== 'TEXTAREA') {
         e.preventDefault();
@@ -195,17 +215,17 @@ document.addEventListener('keydown', e => {
         const nextHidden = [...document.querySelectorAll('.full-form-line')]
             .find(el =>
                 el.dataset.empty !== "true" &&
-                getComputedStyle(el).display === 'none'
+                !el.classList.contains('show')
             );
 
         if (nextHidden) {
-            nextHidden.style.display = 'block';
+            nextHidden.classList.add('show');
             nextHidden.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     }
 });
 
-/* ========== CTRL+1 toggle all ========== */
+/* CTRL+1 toggle all */
 document.addEventListener('keydown', e => {
     if (e.ctrlKey && e.key === '1') {
         e.preventDefault();
@@ -213,12 +233,14 @@ document.addEventListener('keydown', e => {
         const all = [...document.querySelectorAll('.full-form-line')]
             .filter(el => el.dataset.empty !== "true");
 
-        const anyVisible = all.some(el => getComputedStyle(el).display !== 'none');
-        all.forEach(el => el.style.display = anyVisible ? 'none' : 'block');
+        const anyVisible = all.some(el => el.classList.contains('show'));
+        all.forEach(el =>
+            el.classList.toggle('show', !anyVisible)
+        );
     }
 });
 
-/* ========== STUDY COUNT ========== */
+/* study count */
 countPlus.onclick = () => {
     studyCount++;
     studyCountEl.textContent = studyCount;
@@ -233,7 +255,7 @@ countMinus.onclick = () => {
     }
 };
 
-/* ========== TAB AS SPACES ========== */
+/* tab as spaces */
 function enableTabAsSpaces(el, spaces = 4) {
     el.addEventListener('keydown', e => {
         if (e.key === 'Tab') {
