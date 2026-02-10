@@ -37,6 +37,7 @@ textarea {
     outline: none; 
     background: #0D1117; 
     color: #E4E4E4;
+    white-space: pre-wrap;
 }
 textarea:focus { background: #161B22; }
 
@@ -56,16 +57,12 @@ textarea:focus { background: #161B22; }
 .abbreviation-text { 
     display: flex; 
     flex-direction: column; 
-    gap: 4px; 
+    gap: 18px; 
 }
 
 .line { 
     cursor: pointer; 
-    padding: 3px 6px;
-}
-.line:hover {
-    background: rgba(255,255,255,0.04);
-    border-radius: 6px;
+    white-space: pre-wrap; 
 }
 
 .abbr-line { 
@@ -75,27 +72,33 @@ textarea:focus { background: #161B22; }
     font-size: 1.4rem; 
 }
 
+/* ===== FULL FORM (SOFT, CLEAN) ===== */
 .full-form-line {
     font-family: 'Consolas', monospace;
     color: #45B2FF;
-    margin-top: 6px;
-    font-size: 1.1rem;
+
+    max-height: 0;
     opacity: 0;
-    transition: opacity 200ms ease;
+    overflow: hidden;
+
+    margin-top: 4px;   /* sirf vertical gap */
+
+    font-size: 1.1rem;
+
+    transition:
+        max-height 280ms ease,
+        opacity 220ms ease;
 }
+
 
 .full-form-line.show {
-    opacity: 0.9;
+    max-height: 200px;
+    opacity: 0.85;
 }
 
-.word {
+.full-form-line[data-empty="true"] {
+    max-height: 1rem;
     opacity: 0;
-    margin-right: 6px;
-    transition: opacity 200ms ease;
-}
-
-.word.show {
-    opacity: 0.9;
 }
 </style>
 </head>
@@ -170,35 +173,24 @@ function generateTool() {
         const line = document.createElement('div');
         line.className = 'line';
 
-        const a = document.createElement('div');
+        const a = document.createElement('span');
         a.className = 'abbr-line';
         a.textContent = abbr;
 
         const f = document.createElement('div');
         f.className = 'full-form-line';
 
-        if (fullLines[i].trim() !== '') {
-            fullLines[i].split(' ').forEach(word => {
-                const span = document.createElement('span');
-                span.className = 'word';
-                span.textContent = word;
-                f.appendChild(span);
-            });
+        if (fullLines[i].trim() === '') {
+            f.dataset.empty = "true";
+        } else {
+            f.textContent = fullLines[i];
         }
 
         line.append(a, f);
 
-        /* CLICK = toggle whole line */
         line.onclick = () => {
-            const words = [...f.querySelectorAll('.word')];
-            const allVisible = words.every(w => w.classList.contains('show'));
-
-            if (allVisible) {
-                words.forEach(w => w.classList.remove('show'));
-                f.classList.remove('show');
-            } else {
-                f.classList.add('show');
-                words.forEach(w => w.classList.add('show'));
+            if (!f.dataset.empty) {
+                f.classList.toggle('show');
             }
         };
 
@@ -210,7 +202,7 @@ function generateTool() {
 
 generateBtn.onclick = generateTool;
 
-/* SPACE = word-by-word reveal */
+/* SPACE = reveal next smoothly */
 document.addEventListener('keydown', e => {
     if (e.key === ' ' && e.target.tagName !== 'TEXTAREA') {
         e.preventDefault();
@@ -220,37 +212,31 @@ document.addEventListener('keydown', e => {
             return;
         }
 
-        const lines = [...document.querySelectorAll('.full-form-line')];
+        const nextHidden = [...document.querySelectorAll('.full-form-line')]
+            .find(el =>
+                el.dataset.empty !== "true" &&
+                !el.classList.contains('show')
+            );
 
-        for (const line of lines) {
-            const nextWord = line.querySelector('.word:not(.show)');
-            if (nextWord) {
-                line.classList.add('show');
-                nextWord.classList.add('show');
-                line.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                break;
-            }
+        if (nextHidden) {
+            nextHidden.classList.add('show');
+            nextHidden.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     }
 });
 
-/* CTRL + 1 = uniform toggle */
+/* CTRL+1 toggle all */
 document.addEventListener('keydown', e => {
     if (e.ctrlKey && e.key === '1') {
         e.preventDefault();
 
-        const words = [...document.querySelectorAll('.word')];
-        const lines = [...document.querySelectorAll('.full-form-line')];
+        const all = [...document.querySelectorAll('.full-form-line')]
+            .filter(el => el.dataset.empty !== "true");
 
-        const anyVisible = words.some(w => w.classList.contains('show'));
-
-        if (anyVisible) {
-            words.forEach(w => w.classList.remove('show'));
-            lines.forEach(l => l.classList.remove('show'));
-        } else {
-            lines.forEach(l => l.classList.add('show'));
-            words.forEach(w => w.classList.add('show'));
-        }
+        const anyVisible = all.some(el => el.classList.contains('show'));
+        all.forEach(el =>
+            el.classList.toggle('show', !anyVisible)
+        );
     }
 });
 
