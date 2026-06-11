@@ -155,8 +155,8 @@ function updateURL() {
 /* load from URL */
 window.addEventListener('DOMContentLoaded', () => {
     const p = new URLSearchParams(location.search);
-    abbrInput.value = decode(p.get('abbr'));
-    fullInput.value = decode(p.get('full'));
+    abbrInput.value = p.get('abbr') ? decodeURIComponent(p.get('abbr')) : '';
+    fullInput.value = p.get('full') ? decodeURIComponent(p.get('full')) : '';
     studyCount = parseInt(p.get('count')) || 0;
     studyCountEl.textContent = studyCount;
 });
