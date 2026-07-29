@@ -140,29 +140,45 @@ const countMinus = document.getElementById('countMinus');
 let isGenerated = false;
 let studyCount = 0;
 
-/* URL helpers */
-const encode = encodeURIComponent;
-const decode = t => decodeURIComponent(t || '');
+/* ---------- URL ---------- */
 
 function updateURL() {
-    history.replaceState(
-        null,
-        '',
-        `?abbr=${encode(abbrInput.value)}&full=${encode(fullInput.value)}&count=${studyCount}`
-    );
+    const params = new URLSearchParams({
+        abbr: abbrInput.value,
+        full: fullInput.value,
+        count: studyCount.toString()
+    });
+
+    history.replaceState(null, '', '?' + params.toString());
 }
 
-/* load from URL */
+/* ---------- Load from URL ---------- */
+
 window.addEventListener('DOMContentLoaded', () => {
-    const p = new URLSearchParams(location.search);
-    abbrInput.value = p.get('abbr') ? decodeURIComponent(p.get('abbr')) : '';
-    fullInput.value = p.get('full') ? decodeURIComponent(p.get('full')) : '';
-    studyCount = parseInt(p.get('count')) || 0;
-    studyCountEl.textContent = studyCount;
+    try {
+        const p = new URLSearchParams(window.location.search);
+
+        abbrInput.value = p.get('abbr') || '';
+        fullInput.value = p.get('full') || '';
+
+        studyCount = parseInt(p.get('count') || '0', 10);
+        if (isNaN(studyCount)) studyCount = 0;
+
+        studyCountEl.textContent = studyCount;
+
+        if (abbrInput.value.trim() || fullInput.value.trim()) {
+            generateTool();
+        }
+
+    } catch (err) {
+        console.error(err);
+    }
 });
 
-/* generate */
+/* ---------- Generate ---------- */
+
 function generateTool() {
+
     const abbrLines = abbrInput.value.split('\n');
     const fullLines = fullInput.value.split('\n');
 
@@ -172,9 +188,11 @@ function generateTool() {
     }
 
     updateURL();
+
     abbreviationText.innerHTML = '';
 
     abbrLines.forEach((abbr, i) => {
+
         const line = document.createElement('div');
         line.className = 'line';
 
@@ -185,7 +203,7 @@ function generateTool() {
         const f = document.createElement('div');
         f.className = 'full-form-line';
 
-        if (fullLines[i].trim() === '') {
+        if ((fullLines[i] || '').trim() === '') {
             f.dataset.empty = "true";
         } else {
             f.textContent = fullLines[i];
@@ -207,9 +225,12 @@ function generateTool() {
 
 generateBtn.onclick = generateTool;
 
-/* SPACE = reveal next smoothly */
+/* ---------- SPACE = Reveal Next ---------- */
+
 document.addEventListener('keydown', e => {
+
     if (e.key === ' ' && e.target.tagName !== 'TEXTAREA') {
+
         e.preventDefault();
 
         if (!isGenerated) {
@@ -225,27 +246,37 @@ document.addEventListener('keydown', e => {
 
         if (nextHidden) {
             nextHidden.classList.add('show');
-            nextHidden.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            nextHidden.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
         }
     }
 });
 
-/* CTRL+1 toggle all */
+/* ---------- CTRL + 1 ---------- */
+
 document.addEventListener('keydown', e => {
+
     if (e.ctrlKey && e.key === '1') {
+
         e.preventDefault();
 
         const all = [...document.querySelectorAll('.full-form-line')]
             .filter(el => el.dataset.empty !== "true");
 
-        const anyVisible = all.some(el => el.classList.contains('show'));
+        const anyVisible = all.some(el =>
+            el.classList.contains('show')
+        );
+
         all.forEach(el =>
             el.classList.toggle('show', !anyVisible)
         );
     }
 });
 
-/* study count */
+/* ---------- Study Count ---------- */
+
 countPlus.onclick = () => {
     studyCount++;
     studyCountEl.textContent = studyCount;
@@ -260,20 +291,28 @@ countMinus.onclick = () => {
     }
 };
 
-/* tab as spaces */
+/* ---------- TAB = Spaces ---------- */
+
 function enableTabAsSpaces(el, spaces = 4) {
+
     el.addEventListener('keydown', e => {
+
         if (e.key === 'Tab') {
+
             e.preventDefault();
+
             const s = el.selectionStart;
+
             el.value =
                 el.value.slice(0, s) +
                 ' '.repeat(spaces) +
                 el.value.slice(el.selectionEnd);
+
             el.selectionStart = el.selectionEnd = s + spaces;
         }
     });
 }
+
 enableTabAsSpaces(abbrInput);
 enableTabAsSpaces(fullInput);
 </script>
