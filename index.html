@@ -84,17 +84,7 @@ textarea:focus { background: #161B22; }
     margin-top: 4px;   /* sirf vertical gap */
 
     font-size: 1.1rem;
-
-    transition:
-        max-height 700ms cubic-bezier(0.19, 1, 0.22, 1),
-        opacity 500ms ease;
 }
-
-.full-form-line.show {
-    transform: translateY(0);
-    opacity: 0.85;
-}
-
 
 .full-form-line.show {
     max-height: 200px;
@@ -139,6 +129,7 @@ const countMinus = document.getElementById('countMinus');
 
 let isGenerated = false;
 let studyCount = 0;
+let spaceIndex = -1;   // tracks which line is currently opened by SPACE
 
 /* ---------- URL ---------- */
 
@@ -190,6 +181,7 @@ function generateTool() {
     updateURL();
 
     abbreviationText.innerHTML = '';
+    spaceIndex = -1;
 
     abbrLines.forEach((abbr, i) => {
 
@@ -212,6 +204,7 @@ function generateTool() {
         line.append(a, f);
 
         line.onclick = () => {
+            spaceIndex = i;   // Space continues from the line after this one
             if (!f.dataset.empty) {
                 f.classList.toggle('show');
             }
@@ -225,7 +218,7 @@ function generateTool() {
 
 generateBtn.onclick = generateTool;
 
-/* ---------- SPACE = Reveal Next ---------- */
+/* ---------- SPACE = Reveal Next (closes previous) ---------- */
 
 document.addEventListener('keydown', e => {
 
@@ -238,19 +231,29 @@ document.addEventListener('keydown', e => {
             return;
         }
 
-        const nextHidden = [...document.querySelectorAll('.full-form-line')]
-            .find(el =>
-                el.dataset.empty !== "true" &&
-                !el.classList.contains('show')
-            );
+        const all = [...document.querySelectorAll('.full-form-line')];
 
-        if (nextHidden) {
-            nextHidden.classList.add('show');
-            nextHidden.scrollIntoView({
-                behavior: 'smooth',
-                block: 'center'
-            });
+        // find the next line (after the current position) that has a full form
+        let nextIndex = spaceIndex + 1;
+        while (nextIndex < all.length && all[nextIndex].dataset.empty === "true") {
+            nextIndex++;
         }
+
+        if (nextIndex >= all.length) return; // no more lines
+
+        // close the line at the current position
+        if (spaceIndex >= 0) {
+            all[spaceIndex].classList.remove('show');
+        }
+
+        // open the next line
+        spaceIndex = nextIndex;
+        const next = all[spaceIndex];
+        next.classList.add('show');
+        next.scrollIntoView({
+            behavior: 'auto',
+            block: 'center'
+        });
     }
 });
 
