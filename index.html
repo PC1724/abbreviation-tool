@@ -130,6 +130,7 @@ const countMinus = document.getElementById('countMinus');
 let isGenerated = false;
 let studyCount = 0;
 let spaceIndex = -1;   // tracks which line is currently opened by SPACE
+let passValid = false; // true only if the current pass started from the first line
 
 /* ---------- URL ---------- */
 
@@ -182,6 +183,7 @@ function generateTool() {
 
     abbreviationText.innerHTML = '';
     spaceIndex = -1;
+    passValid = false;
 
     abbrLines.forEach((abbr, i) => {
 
@@ -205,6 +207,12 @@ function generateTool() {
 
         line.onclick = () => {
             spaceIndex = i;   // Space continues from the line after this one
+
+            // jumping into the middle breaks the pass; clicking the first line keeps/starts it
+            const firstIdx = [...document.querySelectorAll('.full-form-line')]
+                .findIndex(el => el.dataset.empty !== "true");
+            passValid = (i === firstIdx);
+
             if (!f.dataset.empty) {
                 f.classList.toggle('show');
             }
@@ -218,7 +226,7 @@ function generateTool() {
 
 generateBtn.onclick = generateTool;
 
-/* ---------- SPACE = Reveal Next (closes previous) ---------- */
+/* ---------- SPACE = Reveal Next (closes previous, loops to start) ---------- */
 
 document.addEventListener('keydown', e => {
 
@@ -239,7 +247,25 @@ document.addEventListener('keydown', e => {
             nextIndex++;
         }
 
-        if (nextIndex >= all.length) return; // no more lines
+        // reached the end -> wrap around to the first line that has a full form
+        if (nextIndex >= all.length) {
+            nextIndex = 0;
+            while (nextIndex < all.length && all[nextIndex].dataset.empty === "true") {
+                nextIndex++;
+            }
+            if (nextIndex >= all.length) return; // no full forms at all
+
+            // a full pass is complete -> count it only if it started from the first line
+            if (passValid) {
+                studyCount++;
+                studyCountEl.textContent = studyCount;
+                updateURL();
+            }
+        }
+
+        // landing on the first line with Space starts a fresh, valid pass
+        const firstIndex = all.findIndex(el => el.dataset.empty !== "true");
+        if (nextIndex === firstIndex) passValid = true;
 
         // close the line at the current position
         if (spaceIndex >= 0) {
